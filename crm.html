@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sahabat Pasien PHHE – Agent Blueprint</title>
+<meta name="description" content="Blueprint tim multi-agent CRM pasien Primaya Hospital Hertasning: 1 orchestrator, 5 agen spesialis, memori jangka panjang.">
+<style>
+:root{--bg:#f6f9fc;--card:#fff;--text:#1e293b;--muted:#64748b;--primary:#0f766e;--primary2:#14b8a6;--soft:#e6f6f4;--danger:#dc2626;--dsoft:#fef2f2;--warn:#b45309;--wsoft:#fffbeb;--line:#e2e8f0;--side:#0b3b38}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--primary)}
+section{max-width:1100px;margin:0 auto;padding:56px 16px}
+h2{font-size:1.7rem;text-align:center;margin-bottom:8px}
+.sub{text-align:center;color:var(--muted);margin-bottom:32px;max-width:720px;margin-left:auto;margin-right:auto}
+.top{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top div{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:.9rem}
+.top b{color:var(--primary);margin-right:auto}
+.top a{text-decoration:none;color:var(--muted)}.top a:hover{color:var(--primary)}
+.hero{text-align:center;padding-top:64px}
+.badge{display:inline-block;background:var(--soft);color:var(--primary);border:1px solid #99e0d6;padding:6px 16px;border-radius:999px;font-weight:600;font-size:.85rem;margin-bottom:18px}
+.hero h1{font-size:2.5rem;line-height:1.2;margin-bottom:12px}
+.hero h1 span{color:var(--primary)}
+.tagline{max-width:680px;margin:0 auto 26px;font-size:1.1rem;color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:.9rem}
+.pill b{display:block;font-size:1.25rem;color:var(--primary)}
+.num{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;margin-right:8px;flex:none}
+.bp{display:grid;gap:18px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 2px 10px rgba(15,23,42,.05)}
+.box h3{display:flex;align-items:center;margin-bottom:12px;font-size:1.15rem}
+.box ul{list-style:none}
+.box li{padding:6px 0 6px 26px;position:relative;font-size:.96rem}
+.box li::before{content:"•";position:absolute;left:8px;color:var(--primary);font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.chaos{background:var(--dsoft);border-color:#fecaca}.chaos h4{color:var(--danger)}
+.sol{background:var(--soft);border-color:#99e0d6}.sol h4{color:var(--primary)}
+.chaos li::before{content:"✖";left:0;color:var(--danger);font-weight:400}
+.sol li::before{content:"✔";left:0;font-weight:400}
+h4{margin-bottom:8px}
+.muted{color:var(--muted);font-size:.92rem}
+/* org chart */
+.org{display:flex;flex-direction:column;align-items:center;gap:0}
+.node{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;text-align:center;font-size:.88rem;transition:.25s}
+.node b{display:block;font-size:.95rem}
+.node .ic{font-size:1.5rem}
+.node.orc{border-color:var(--primary);background:var(--soft);min-width:260px}
+.node.hu{border-style:dashed}
+.node.on{border-color:var(--primary2);box-shadow:0 0 0 4px rgba(20,184,166,.25);transform:translateY(-2px)}
+.vline{width:2px;height:22px;background:var(--line)}
+.agents{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;width:100%;position:relative;padding-top:22px}
+.agents::before{content:"";position:absolute;top:0;left:10%;right:10%;height:2px;background:var(--line)}
+.agents .node{position:relative}
+.agents .node::before{content:"";position:absolute;top:-22px;left:50%;width:2px;height:22px;background:var(--line)}
+.agents .node.rev{border-color:#f59e0b;background:var(--wsoft)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin-top:18px;font-size:.88rem}
+.flow span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.flow i{font-style:normal;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--soft);color:var(--primary);font-weight:600}
+.tag{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--primary);font-weight:600}
+.tag.no{background:var(--dsoft);color:var(--danger)}
+.tbl{overflow-x:auto}
+/* CRM mockup */
+.crm{display:grid;grid-template-columns:190px 1fr;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--card);box-shadow:0 10px 40px rgba(15,23,42,.1);min-height:560px}
+.side{background:var(--side);color:#cde7e4;padding:16px 10px;font-size:.88rem}
+.side .brand{color:#fff;font-weight:700;padding:4px 8px 14px;display:flex;gap:8px;align-items:center}
+.side .brand span{width:28px;height:28px;border-radius:8px;background:var(--primary2);display:inline-flex;align-items:center;justify-content:center}
+.side button{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;padding:8px 10px;border-radius:8px;cursor:pointer;font:inherit}
+.side button.act,.side button:hover{background:rgba(255,255,255,.1);color:#fff}
+.main{padding:16px;overflow:hidden;display:flex;flex-direction:column;gap:14px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi small{color:var(--muted);font-size:.75rem}
+.kpi b{display:block;font-size:1.3rem}
+.board{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:10px;overflow-x:auto;padding-bottom:4px}
+.col{background:#f1f5f9;border-radius:12px;padding:8px;min-height:190px}
+.col h5{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:2px 4px 8px;display:flex;justify-content:space-between}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:.82rem;animation:fade .4s}
+.card b{display:block;font-size:.86rem}
+.card .src{font-size:.7rem;color:var(--muted)}
+.card.new{border-color:var(--primary2);box-shadow:0 0 0 3px rgba(20,184,166,.25)}
+.card.red{border-color:var(--danger);background:var(--dsoft)}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.lower{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}
+.panel{border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:250px}
+.panel .ph{padding:8px 12px;border-bottom:1px solid var(--line);font-weight:600;font-size:.86rem;display:flex;justify-content:space-between;align-items:center}
+.chatbody{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#fafcfd;max-height:300px}
+.msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:.84rem;animation:fade .3s}
+.msg.in{align-self:flex-start;background:#fff;border:1px solid var(--line)}
+.msg.out{align-self:flex-end;background:var(--primary);color:#fff}
+.msg.out.draft{background:#fff;color:var(--text);border:2px dashed var(--primary2)}
+.log{flex:1;overflow-y:auto;padding:10px;font-size:.8rem;font-family:Consolas,monospace;max-height:300px;display:flex;flex-direction:column;gap:6px}
+.log div{padding:6px 8px;border-radius:8px;background:#f8fafc;border-left:3px solid var(--line);animation:fade .3s}
+.log .o{border-color:var(--primary)}.log .a{border-color:var(--primary2)}.log .r{border-color:#f59e0b;background:var(--wsoft)}.log .m{border-color:#7c3aed;background:#f5f3ff}.log .x{border-color:var(--danger);background:var(--dsoft)}
+.scen{display:flex;flex-wrap:wrap;gap:8px}
+.scen button,.hitl button{border:1px solid var(--primary);background:#fff;color:var(--primary);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.82rem}
+.scen button:hover{background:var(--soft)}
+.scen button:disabled{opacity:.45;cursor:not-allowed}
+.hitl{display:none;gap:8px;padding:8px 10px;border-top:1px solid var(--line);background:var(--wsoft);align-items:center;flex-wrap:wrap;font-size:.8rem}
+.hitl.show{display:flex}
+.hitl button.ok{background:var(--primary);color:#fff}
+.view{display:none}.view.show{display:flex;flex-direction:column;gap:14px}
+.mem{font-size:.84rem}
+.mem .k{color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:.85rem;padding:30px 16px;border-top:1px solid var(--line)}
+@media(max-width:900px){
+ .grid2,.grid3,.lower{grid-template-columns:1fr}
+ .agents{grid-template-columns:1fr 1fr}
+ .agents::before,.agents .node::before{display:none}
+ .crm{grid-template-columns:1fr}
+ .side{display:flex;overflow-x:auto;gap:4px;padding:8px}
+ .side .brand{display:none}
+ .side button{white-space:nowrap;width:auto}
+ .kpis{grid-template-columns:1fr 1fr}
+ .hero h1{font-size:1.9rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="top"><div>
+  <b>Sahabat Pasien PHHE</b>
+  <a href="#blueprint">Blueprint</a>
+  <a href="#tim">Tim Agen</a>
+  <a href="#memori">Memori</a>
+  <a href="#demo">Demo CRM</a>
+  <a href="index.html">← Eve</a>
+</div></nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">🧩 Agent Blueprint · AI Builder Bootcamp Week 5 &amp; 6</div>
+  <h1>Sahabat Pasien PHHE<br><span>CRM Pasien dengan Tim Agen AI</span></h1>
+  <p class="tagline">Satu manajer AI (orchestrator) memimpin 5 agen spesialis untuk menjawab calon pasien, membuat janji, mengingatkan kontrol, dan menjaga pasien kembali ke Primaya Hospital Hertasning (PHHE), Makassar. Semua dengan persetujuan staf manusia sebelum terkirim.</p>
+  <div class="pills">
+    <div class="pill"><b>1 + 5</b>Orchestrator + agen spesialis</div>
+    <div class="pill"><b>Supervisor</b>Pola orkestrasi utama</div>
+    <div class="pill"><b>&lt; 5 menit</b>Target balasan pertama</div>
+    <div class="pill"><b>HITL</b>Staf menyetujui setiap pesan</div>
+  </div>
+</section>
+
+<!-- BLUEPRINT 5 POIN -->
+<section id="blueprint">
+  <h2>Blueprint dalam 5 Poin</h2>
+  <p class="sub">Jawaban langsung untuk challenge "The Blueprint": nama, masalah, sendiri atau tim, anggota &amp; pola kerja, dan isi memori.</p>
+  <div class="bp">
+
+    <div class="box">
+      <h3><span class="num">1</span>Nama sistem</h3>
+      <p><b>Sahabat Pasien PHHE</b>: CRM pasien umum (B2C) bertenaga tim multi-agent. Satu pintu untuk semua chat calon pasien dari WhatsApp, Instagram, iklan Meta, Google Business, dan website rumah sakit.</p>
+    </div>
+
+    <div class="box">
+      <h3><span class="num">2</span>Masalah yang ditangani</h3>
+      <div class="grid2">
+        <div class="box chaos">
+          <h4>😵 Sekarang</h4>
+          <ul>
+            <li>Chat calon pasien dari iklan &amp; WA tersebar di banyak HP admin; balasan bisa berjam-jam, calon pasien pindah ke RS lain.</li>
+            <li>Tidak ada pipeline: tidak tahu berapa chat yang benar-benar jadi kunjungan, dan iklan mana yang menghasilkan pasien.</li>
+            <li>Pasien selesai berobat lalu "hilang": tidak ada pengingat kontrol, MCU tahunan, atau permintaan ulasan.</li>
+            <li>Tempat tidur rawat inap banyak kosong: RS bagus tapi kurang dikenal dan kurang ditindaklanjuti.</li>
+          </ul>
+        </div>
+        <div class="box sol">
+          <h4>✨ Dengan Sahabat Pasien</h4>
+          <ul>
+            <li>Setiap chat dibalas &lt; 5 menit, dikualifikasi (keluhan, poli, penjamin), dan masuk pipeline.</li>
+            <li>Janji dokter dibuat dari jadwal resmi, plus pengingat H-1 untuk menekan pasien tidak datang.</li>
+            <li>Follow-up otomatis pasca kunjungan: kontrol, obat, MCU, dan ulasan Google.</li>
+            <li>Laporan mingguan lead → kunjungan per sumber iklan &amp; per poli untuk tim marketing.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3><span class="num">3</span>Berjalan sendiri atau tim?</h3>
+      <p><b>Tim.</b> Satu agen yang merangkap CS, admin jadwal, analis, dan pengawas etika akan kena penyakit "Palugada": prompt membengkak, fokus pecah, dan berisiko salah bicara soal medis. Karena itu tugasnya dipecah ke agen dengan prompt sempit, dipimpin satu <b>Orchestrator</b>, dan setiap pesan keluar tetap disetujui <b>staf CS manusia</b> (Human-in-the-Loop).</p>
+    </div>
+
+    <div class="box" id="tim">
+      <h3><span class="num">4</span>Anggota tim &amp; pola kerja sama</h3>
+      <p class="muted" style="margin-bottom:18px">Pola utama <b>Supervisor / Manager</b>: Orchestrator membaca setiap kejadian (chat masuk, jadwal kontrol jatuh tempo, akhir minggu), lalu mendelegasikan ke spesialis yang tepat. Untuk setiap pesan keluar dipakai <b>Sequential Chain</b> pendek: Spesialis → Reviewer → Staf.</p>
+
+      <div class="org">
+        <div class="node orc" id="n-orc"><span class="ic">🧭</span><b>Orchestrator · Manajer Relasi Pasien</b>Baca kejadian, ingat profil pasien, bagi tugas, gabungkan hasil</div>
+        <div class="agents">
+          <div class="node" id="n-a1"><span class="ic">📥</span><b>Agen Penerima</b>Balas chat, kualifikasi keluhan, poli &amp; penjamin; deteksi tanda darurat</div>
+          <div class="node" id="n-a2"><span class="ic">📅</span><b>Agen Janji Temu</b>Cek jadwal dokter, buat janji, kirim pengingat H-1</div>
+          <div class="node" id="n-a3"><span class="ic">💚</span><b>Agen Retensi</b>Follow-up pasca kunjungan, kontrol, MCU tahunan, minta ulasan</div>
+          <div class="node" id="n-a4"><span class="ic">📊</span><b>Agen Analis</b>Konversi lead → kunjungan per iklan &amp; poli, laporan mingguan</div>
+          <div class="node rev" id="n-a5"><span class="ic">🛡️</span><b>Agen Reviewer</b>Cek etika promosi RS, tidak mendiagnosis, tidak membocorkan data</div>
+        </div>
+        <div class="vline"></div>
+        <div class="node hu" id="n-hu"><span class="ic">👩‍💼</span><b>Staf CS PHHE (manusia)</b>Setujui / ubah / tolak sebelum terkirim</div>
+      </div>
+
+      <div class="flow">
+        <span>💬 Chat / jadwal / laporan</span><i>→</i><span>🧭 Orchestrator</span><i>→</i><span>🤖 Spesialis</span><i>→</i><span>🛡️ Reviewer</span><i>→</i><span>👩‍💼 Staf setuju</span><i>→</i><span>📤 Terkirim + 🧠 memori diperbarui</span>
+      </div>
+
+      <div class="tbl" style="margin-top:22px">
+      <table>
+        <tr><th>Kejadian</th><th>Orchestrator memanggil</th><th>Hasil</th></tr>
+        <tr><td>Chat baru dari iklan / WA</td><td>Penerima → Janji Temu → Reviewer</td><td>Lead terkualifikasi + draf jawaban + slot dokter</td></tr>
+        <tr><td>Kata kunci darurat (nyeri dada, sesak, perdarahan)</td><td>Penerima → <b>langsung eskalasi</b></td><td>Arahkan ke IGD 24 jam, staf ditelepon, tanpa jualan</td></tr>
+        <tr><td>Pasien selesai rawat / kontrol jatuh tempo</td><td>Retensi → Reviewer</td><td>Pesan perhatian + tawaran jadwal kontrol</td></tr>
+        <tr><td>Setiap Senin pagi</td><td>Analis</td><td>Laporan: sumber lead terbaik, poli paling dicari, lead macet</td></tr>
+      </table>
+      </div>
+    </div>
+
+    <div class="box" id="memori">
+      <h3><span class="num">5</span>Apa yang disimpan di memori</h3>
+      <p class="muted" style="margin-bottom:14px">Mengikuti konsep Mem0 / Honcho: yang disimpan <b>intisari fakta</b>, bukan percakapan kata per kata. Fakta disuntikkan otomatis saat pasien kembali menghubungi, jadi tidak ada lagi "amnesia".</p>
+      <div class="tbl">
+      <table>
+        <tr><th>Lapisan</th><th>Isi</th><th>Contoh</th></tr>
+        <tr><td><span class="tag">Jangka pendek</span><br>context window</td><td>Percakapan yang sedang berjalan</td><td>"Ibu tadi tanya dokter anak hari Sabtu"</td></tr>
+        <tr><td><span class="tag">Jangka panjang</span><br>profil pasien</td><td>Nama panggilan, bahasa &amp; gaya bicara, kanal favorit, jenis penjamin (umum / asuransi / BPJS), poli &amp; dokter langganan, tanggal kontrol berikutnya, izin dihubungi via WA (consent), sumber lead pertama</td><td>"Bu Rina · suka dipanggil Bu · WA · asuransi swasta · poli anak dr. A · kontrol 12 Nov · dari iklan IG"</td></tr>
+        <tr><td><span class="tag">Jangka panjang</span><br>pengetahuan RS</td><td>Jadwal dokter, paket layanan &amp; harga publik, FAQ, alur IGD, SPO komunikasi (disimpan di <b>vector database</b> supaya dicari berdasarkan makna)</td><td>"perut kanan bawah sakit" → ketemu FAQ poli bedah &amp; penyakit dalam walau kata-katanya beda</td></tr>
+        <tr><td><span class="tag">Jangka panjang</span><br>aturan kerja</td><td>Preferensi tim marketing: jam layanan, gaya bahasa sopan, kata yang dilarang, batas kewenangan agen</td><td>"Jangan pernah menjanjikan kesembuhan", "pakai 'Bapak/Ibu'"</td></tr>
+        <tr><td><span class="tag">Jangka panjang</span><br>pelajaran</td><td>Pesan &amp; penawaran yang terbukti mengubah chat jadi kunjungan</td><td>"Pengingat H-1 jam 18.00 lebih dibalas daripada jam 09.00"</td></tr>
+        <tr><td><span class="tag no">Tidak disimpan</span></td><td>Diagnosis rinci, hasil lab, foto/dokumen medis, NIK, nomor kartu. Data medis tetap di SIMRS RS; CRM hanya menyimpan kategori &amp; tautan.</td><td>Kerahasiaan pasien sesuai UU Kesehatan</td></tr>
+      </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- DEMO CRM -->
+<section id="demo">
+  <h2>Coba Demo CRM-nya</h2>
+  <p class="sub">Mockup interaktif dengan <b>data fiktif</b>. Pilih skenario, lihat Orchestrator membagi tugas ke agen, lalu Anda sebagai staf CS menyetujui pesannya.</p>
+
+  <div class="crm">
+    <aside class="side">
+      <div class="brand"><span>💚</span>Sahabat Pasien</div>
+      <button class="act" data-v="pipe">📈 Pipeline</button>
+      <button data-v="kontak">👥 Kontak &amp; Memori</button>
+      <button data-v="agen">🤖 Tim Agen</button>
+    </aside>
+
+    <div class="main">
+      <!-- PIPELINE VIEW -->
+      <div class="view show" id="v-pipe">
+        <div class="kpis">
+          <div class="kpi"><small>Lead minggu ini</small><b id="k1">14</b></div>
+          <div class="kpi"><small>Rata-rata balasan</small><b id="k2">3,8 mnt</b></div>
+          <div class="kpi"><small>Janji dibuat</small><b id="k3">6</b></div>
+          <div class="kpi"><small>Konversi lead → datang</small><b id="k4">29%</b></div>
+        </div>
+        <div class="scen" id="scen">
+          <button data-s="mcu">📣 Lead iklan MCU</button>
+          <button data-s="anak">👶 Tanya dokter anak</button>
+          <button data-s="kontrol">💚 Follow-up pasca rawat</button>
+          <button data-s="darurat">🚨 Chat darurat</button>
+          <button data-s="lapor">📊 Laporan Senin</button>
+        </div>
+        <div class="board" id="board"></div>
+        <div class="lower">
+          <div class="panel">
+            <div class="ph"><span id="chatTitle">💬 Percakapan</span><span class="muted" id="chatCh"></span></div>
+            <div class="chatbody" id="chat"><div class="muted">Pilih skenario di atas untuk memulai.</div></div>
+            <div class="hitl" id="hitl"><span>👩‍💼 Draf siap. Setujui sebagai staf CS?</span><button class="ok" id="ok">✔ Setujui &amp; kirim</button><button id="no">✖ Tolak</button></div>
+          </div>
+          <div class="panel">
+            <div class="ph">🧭 Log Orchestrator</div>
+            <div class="log" id="log"><div>Menunggu kejadian…</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KONTAK VIEW -->
+      <div class="view" id="v-kontak">
+        <p class="muted">Profil memori jangka panjang (fiktif). Inilah yang "disuntikkan" ke Orchestrator setiap pasien kembali menghubungi.</p>
+        <div class="grid3" id="mem"></div>
+      </div>
+
+      <!-- AGEN VIEW -->
+      <div class="view" id="v-agen">
+        <p class="muted">Status &amp; prompt sempit setiap agen.</p>
+        <div class="tbl"><table>
+          <tr><th>Agen</th><th>Prompt inti (dipersingkat)</th><th>Tools</th></tr>
+          <tr><td>🧭 Orchestrator</td><td>"Baca kejadian &amp; memori pasien. Pilih agen yang perlu. Jangan menjawab pasien sendiri. Gabungkan hasil, kirim ke Reviewer."</td><td>Memori, router</td></tr>
+          <tr><td>📥 Penerima</td><td>"Sapa, tanyakan keluhan singkat, poli, penjamin. Jika ada tanda darurat → hentikan, arahkan IGD, panggil staf."</td><td>WA/IG inbox, vector FAQ</td></tr>
+          <tr><td>📅 Janji Temu</td><td>"Tawarkan maks. 3 slot dari jadwal resmi. Jangan mengarang jadwal."</td><td>Jadwal dokter, kalender</td></tr>
+          <tr><td>💚 Retensi</td><td>"Tanyakan kabar dulu, baru tawarkan kontrol. Minta ulasan hanya jika pasien puas."</td><td>Jadwal kontrol, link ulasan</td></tr>
+          <tr><td>📊 Analis</td><td>"Hitung dari data pipeline saja. Tulis 3 temuan + 1 saran."</td><td>Pipeline, data iklan</td></tr>
+          <tr><td>🛡️ Reviewer</td><td>"Tolak jika: menjanjikan kesembuhan, mendiagnosis, menyebut data medis, membandingkan RS lain."</td><td>SPO komunikasi</td></tr>
+        </table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  Sahabat Pasien PHHE · Agent Blueprint oleh Oki Yancy · AI Builder Bootcamp Showcase (AI Creator Labs)<br>
+  Semua nama &amp; data di demo adalah fiktif. Tidak ada data pasien asli.
+</footer>
+
+<script>
+const stages=[["lead","Lead baru"],["kual","Terkualifikasi"],["janji","Janji dibuat"],["datang","Datang"],["kembali","Kontrol / kembali"]];
+let cards=[
+ {id:1,n:"Pak Hendra",d:"Nyeri lutut · ortopedi",s:"IG Ads",st:"lead"},
+ {id:2,n:"Bu Sari",d:"Cek gula · penyakit dalam",s:"Google Maps",st:"kual"},
+ {id:3,n:"Kak Dewi",d:"Kehamilan 12 mgg · obgyn",s:"WhatsApp",st:"janji"},
+ {id:4,n:"Pak Arif",d:"Pasca operasi hernia",s:"Website",st:"datang"},
+ {id:5,n:"Bu Lina",d:"MCU tahunan",s:"Referral",st:"kembali"}
+];
+const memori=[
+ {n:"Bu Rina",f:[["Panggilan","Bu Rina"],["Kanal","WhatsApp · consent ✔"],["Penjamin","Asuransi swasta"],["Langganan","Poli anak"],["Kontrol","—"],["Sumber","IG Ads · Okt"]]},
+ {n:"Pak Arif",f:[["Panggilan","Pak Arif"],["Kanal","WhatsApp · consent ✔"],["Penjamin","Umum"],["Langganan","Poli bedah"],["Kontrol","H+7 pasca operasi"],["Gaya","Suka pesan singkat"]]},
+ {n:"Bu Lina",f:[["Panggilan","Bu Lina"],["Kanal","WA + email"],["Penjamin","Umum"],["Langganan","MCU tahunan"],["Pengingat","Tiap Oktober"],["Catatan","Puas → sudah beri ulasan"]]}
+];
+const S={
+ mcu:{title:"Pak Budi · IG Ads",card:{n:"Pak Budi",d:"Paket MCU karyawan",s:"IG Ads"},
+  inp:"Halo, saya lihat iklan MCU. Paket untuk umur 45 berapa ya? Bisa Sabtu?",
+  steps:[["o","Orchestrator: kejadian = chat baru dari IG Ads. Memori: kontak baru, belum ada profil."],["a","→ Agen Penerima: kualifikasi → minat MCU, usia 45, penjamin umum.",1,"kual"],["a","→ Agen Janji Temu: cek jadwal MCU Sabtu → 3 slot tersedia."],["r","→ Agen Reviewer: harga sesuai daftar paket publik ✔, tidak ada klaim berlebihan ✔"]],
+  draft:"Selamat siang Pak Budi 🙏 Untuk usia 45 tahun kami sarankan Paket MCU Eksekutif (harga sesuai brosur terbaru). Sabtu ini tersedia jam 07.30, 08.30, atau 09.30, puasa 10 jam sebelumnya. Mau saya kunci jam berapa, Pak?",
+  after:[["m","🧠 Memori disimpan: Pak Budi · minat MCU · usia 45 · sumber IG Ads · consent WA ✔"]],to:"janji"},
+ anak:{title:"Bu Rina · WhatsApp",card:{n:"Bu Rina",d:"Anak demam 2 hari · poli anak",s:"WhatsApp"},
+  inp:"Sore, anak saya demam 2 hari. Dokter anak ada hari ini?",
+  steps:[["o","Orchestrator: kontak lama. Memori: Bu Rina · langganan poli anak · asuransi swasta."],["a","→ Agen Penerima: cek tanda bahaya (kejang, sesak, tidak mau minum) → tidak ada. Kualifikasi poli anak.",1,"kual"],["a","→ Agen Janji Temu: jadwal dr. anak hari ini 16.00–20.00 → slot 17.00 & 18.30."],["r","→ Agen Reviewer: tidak memberi diagnosis/obat ✔, sertakan pesan bila memburuk ke IGD ✔"]],
+  draft:"Sore Bu Rina 🙏 Dokter anak praktik hari ini 16.00–20.00. Ada slot 17.00 atau 18.30, mau yang mana, Bu? Asuransi Ibu bisa dipakai seperti kunjungan sebelumnya. Bila adik kejang, sesak, atau sulit minum, langsung ke IGD kami ya, Bu, buka 24 jam.",
+  after:[["m","🧠 Memori diperbarui: Bu Rina · kunjungan poli anak ke-2 · respon cepat sore hari"]],to:"janji"},
+ kontrol:{title:"Pak Arif · WhatsApp",cardId:4,
+  inp:null,
+  steps:[["o","Orchestrator: pemicu jadwal → Pak Arif H+7 pasca operasi hernia. Memori: suka pesan singkat."],["a","→ Agen Retensi: susun pesan menanyakan kabar + tawaran kontrol bedah."],["r","→ Agen Reviewer: tidak menyebut detail operasi di pesan WA ✔ (kerahasiaan), singkat ✔"]],
+  draft:"Selamat pagi Pak Arif, semoga pemulihannya lancar 🙏 Sudah waktunya kontrol ke poli bedah. Kamis 10.00 atau Jumat 14.00, mana yang Bapak bisa?",
+  after:[["m","🧠 Memori diperbarui: Pak Arif · kontrol dijadwalkan · lalu minta ulasan bila puas"]],to:"kembali"},
+ darurat:{title:"Nomor baru · WhatsApp",card:{n:"Nomor baru",d:"⚠ Nyeri dada",s:"WhatsApp"},red:true,
+  inp:"Tolong, bapak saya nyeri dada dan keringat dingin sejak tadi",
+  steps:[["o","Orchestrator: chat baru. Memori: tidak ada."],["x","→ Agen Penerima: 🚨 TANDA DARURAT terdeteksi (nyeri dada + keringat dingin). Alur jualan DIHENTIKAN."],["x","→ Eskalasi: notifikasi + telepon ke staf IGD jaga. Agen lain tidak dipanggil."],["r","→ Agen Reviewer: pesan hanya berisi arahan IGD & nomor darurat ✔"]],
+  draft:"Segera bawa Bapak ke IGD terdekat sekarang. IGD Primaya Hertasning buka 24 jam. Bila sulit membawa, hubungi 119 / ambulans. Petugas kami akan menelepon nomor ini sekarang.",
+  after:[["m","🧠 Dicatat sebagai kejadian darurat · ditindaklanjuti staf, bukan agen"]],to:null},
+ lapor:{title:"Laporan mingguan",report:true,
+  steps:[["o","Orchestrator: pemicu Senin 07.00 → panggil Agen Analis."],["a","→ Agen Analis: baca pipeline 7 hari (fiktif)."],["r","→ Agen Reviewer: angka cocok dengan pipeline ✔, saran dalam kewenangan marketing ✔"]],
+  draft:"📊 Laporan minggu ini (fiktif)\n1. IG Ads: lead terbanyak, tapi baru 20% yang datang. Google Maps lead sedikit, 45% datang.\n2. Poli paling dicari: anak, penyakit dalam, MCU.\n3. 4 lead macet > 48 jam di 'Terkualifikasi'.\nSaran: geser 20% budget ke iklan Maps/Search & minta Agen Penerima follow-up 4 lead macet hari ini.",
+  after:[],to:null}
+};
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let busy=false,cur=null,curCard=null;
+
+function render(){
+ $("board").innerHTML=stages.map(([k,t])=>{
+  const cs=cards.filter(c=>c.st===k);
+  return `<div class="col"><h5>${t}<span>${cs.length}</span></h5>${cs.map(c=>`<div class="card ${c.hl?"new":""} ${c.red?"red":""}"><b>${c.n}</b>${c.d}<div class="src">${c.s}</div></div>`).join("")}</div>`;
+ }).join("");
+}
+function addLog(cls,t){const d=document.createElement("div");d.className=cls;d.textContent=t;$("log").appendChild(d);$("log").scrollTop=1e6}
+function addMsg(cls,t){const d=document.createElement("div");d.className="msg "+cls;d.textContent=t;d.style.whiteSpace="pre-line";$("chat").appendChild(d);$("chat").scrollTop=1e6;return d}
+function hl(id,on){const n=$(id);if(n)n.classList.toggle("on",on)}
+
+async function run(key){
+ if(busy)return;busy=true;cur=S[key];
+ document.querySelectorAll("#scen button").forEach(b=>b.disabled=true);
+ cards.forEach(c=>c.hl=false);
+ $("chat").innerHTML="";$("log").innerHTML="";$("chatTitle").textContent="💬 "+cur.title;
+ if(cur.card){curCard={id:Date.now(),...cur.card,st:"lead",hl:true,red:!!cur.red};cards.push(curCard)}
+ else if(cur.cardId){curCard=cards.find(c=>c.id===cur.cardId);curCard.hl=true}
+ else curCard=null;
+ render();
+ if(cur.inp){await sleep(400);addMsg("in",cur.inp)}
+ for(const [cls,t,_,mv] of cur.steps){
+  await sleep(900);addLog(cls,t);
+  if(mv&&curCard){curCard.st=mv;render()}
+ }
+ await sleep(800);
+ const d=addMsg("out draft",cur.draft);d.id="draft";
+ addLog("o","Orchestrator: draf diteruskan ke staf CS untuk persetujuan (HITL).");
+ $("hitl").classList.add("show");
+}
+async function decide(ok){
+ $("hitl").classList.remove("show");
+ const d=$("draft");
+ if(ok){
+  d.classList.remove("draft");d.removeAttribute("id");
+  addLog("o","✔ Staf menyetujui · pesan terkirim.");
+  if(curCard&&cur.to){curCard.st=cur.to;render()}
+  if(cur.to==="janji"){$("k3").textContent=+$("k3").textContent+1}
+  if(curCard&&cur.card){$("k1").textContent=+$("k1").textContent+1}
+  for(const [c,t] of cur.after){await sleep(600);addLog(c,t)}
+ }else{
+  d.style.opacity=.4;d.removeAttribute("id");
+  addLog("x","✖ Staf menolak · draf dikembalikan ke agen dengan catatan. Pelajaran disimpan di memori aturan kerja.");
+ }
+ busy=false;document.querySelectorAll("#scen button").forEach(b=>b.disabled=false);
+}
+$("scen").addEventListener("click",e=>{const b=e.target.closest("button");if(b)run(b.dataset.s)});
+$("ok").onclick=()=>decide(true);$("no").onclick=()=>decide(false);
+document.querySelectorAll(".side button").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".side button").forEach(x=>x.classList.remove("act"));b.classList.add("act");
+ document.querySelectorAll(".view").forEach(v=>v.classList.remove("show"));$("v-"+b.dataset.v).classList.add("show");
+});
+$("mem").innerHTML=memori.map(m=>`<div class="box mem"><h4>👤 ${m.n}</h4>${m.f.map(([k,v])=>`<div><span class="k">${k}:</span> ${v}</div>`).join("")}</div>`).join("");
+// highlight org chart nodes on hover of table rows is skipped; animate org chart on scroll
+const ids=["n-orc","n-a1","n-a2","n-a3","n-a4","n-a5","n-hu"];let i=0;
+setInterval(()=>{ids.forEach(x=>hl(x,false));hl(ids[i%ids.length],true);i++},1200);
+render();
+</script>
+</body>
+</html>
